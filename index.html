@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Wrapped</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 36px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      margin-top: 20px;
+      font-size: 28px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 500;
+    }
+
+    .button-container {
+      margin: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .theme-selector {
+      margin: 20px;
+    }
+
+    .theme-selector select {
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    /* Theme-Specific Styles */
+    .cinnamoroll-theme {
+      background: linear-gradient(135deg, #d4f1f9, #e0f7ff);
+      color: #5a9fcf;
+    }
+
+    .cinnamoroll-theme h1, .cinnamoroll-theme h2 {
+      color: #7aa7d2;
+    }
+
+    .cinnamoroll-theme button {
+      background-color: #a6dcef;
+      color: #ffffff;
+    }
+
+    .cinnamoroll-theme li {
+      background-color: rgba(250, 250, 250, 0.8);
+      color: #444;
+    }
+
+    .badtz-maru-theme {
+      background: linear-gradient(135deg, #232323, #3c3c3c);
+      color: #ffc857;
+    }
+
+    .badtz-maru-theme h1, .badtz-maru-theme h2 {
+      color: #ffc857;
+    }
+
+    .badtz-maru-theme button {
+      background-color: #ffc857;
+      color: #232323;
+    }
+
+    .badtz-maru-theme li {
+      background-color: #4b4b4b;
+      color: #ffc857;
+    }
+
+    .hello-kitty-theme {
+      background: linear-gradient(135deg, #f8c1d7, #fbd3e6);
+      color: #f04f78;
+    }
+
+    .hello-kitty-theme h1, .hello-kitty-theme h2 {
+      color: #f04f78;
+    }
+
+    .hello-kitty-theme button {
+      background-color: #f04f78;
+      color: #ffffff;
+    }
+
+    .hello-kitty-theme li {
+      background-color: rgba(255, 204, 221, 0.8);
+      color: #f04f78;
+    }
+
+    .keroppi-theme {
+      background: linear-gradient(135deg, #a4e376, #d0f2a3);
+      color: #558b2f;
+    }
+
+    .keroppi-theme h1, .keroppi-theme h2 {
+      color: #558b2f;
+    }
+
+    .keroppi-theme button {
+      background-color: #558b2f;
+      color: #ffffff;
+    }
+
+    .keroppi-theme li {
+      background-color: rgba(204, 255, 153, 0.8);
+      color: #558b2f;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container cinnamoroll-theme">
+    <h1>Your 2024 Spotify Wrapped</h1>
+    <div class="button-container">
+      <button id="login-btn">Login with Spotify</button>
+      <button id="get-data-btn" style="display: none;">Show My Wrapped</button>
+    </div>
+
+    <div class="theme-selector">
+      <label for="theme">Choose Your Theme: </label>
+      <select id="theme" onchange="applyTheme()">
+        <option value="cinnamoroll">Cinnamoroll</option>
+        <option value="badtz-maru">Bad Badtz-Maru</option>
+        <option value="hello-kitty">Hello Kitty</option>
+        <option value="keroppi">Keroppi</option>
+      </select>
+    </div>
+
+    <h2>Top 10 Songs</h2>
+    <ul id="top-tracks"></ul>
+
+    <h2>Top 10 Artists</h2>
+    <ul id="top-artists"></ul>
+
+    <h2>Your Favorite Genres</h2>
+    <ul id="top-genres"></ul>
+  </div>
+
+  <script src="scriptspotify"></script>
+</body>
+</html>
