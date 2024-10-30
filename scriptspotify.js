@@ -1,5 +1,5 @@
-const CLIENT_ID = '894e36ebf0a7460f99d52b98b8063ffa'; // Replace with your Spotify Client ID
-const REDIRECT_URI = 'https://fuyodoru.github.io/spotify-sanrio-wrapped/'; // Update with your deployment URI
+const CLIENT_ID = '894e36ebf0a7460f99d52b98b8063ffa'; 
+const REDIRECT_URI = 'https://fuyodoru.github.io/spotify-sanrio-wrapped'; 
 const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize';
 const RESPONSE_TYPE = 'token';
 const SCOPES = 'user-top-read';
