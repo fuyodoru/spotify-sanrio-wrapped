@@ -65,11 +65,11 @@
       transition: background-color 0.3s;
     }
 
-    .theme-selector {
+    .theme-selector, .time-range-selector {
       margin: 20px;
     }
 
-    .theme-selector select {
+    .theme-selector select, .time-range-selector select {
       padding: 8px;
       border-radius: 10px;
       font-size: 16px;
@@ -161,15 +161,6 @@
       <button id="login-btn">Login with Spotify</button>
       <button id="get-data-btn" style="display: none;">Show My Wrapped</button>
     </div>
-  <div class="time-range-selector">
-  <label for="time-range">Choose Time Range: </label>
-  <select id="time-range">
-    <option value="short_term">Last Month</option>
-    <option value="medium_term">Last 6 Months</option>
-    <option value="long_term">Last Year</option>
-  </select>
-</div>
-
 
     <div class="theme-selector">
       <label for="theme">Choose Your Theme: </label>
@@ -180,6 +171,16 @@
         <option value="keroppi">Keroppi</option>
       </select>
     </div>
+
+    <div class="time-range-selector">
+      <label for="time-range">Choose Time Range: </label>
+      <select id="time-range">
+        <option value="short_term">Last Month</option>
+        <option value="medium_term">Last 6 Months</option>
+        <option value="long_term">Last Year</option>
+      </select>
+    </div>
+
 
     <h2>Top 10 Songs</h2>
     <ul id="top-tracks"></ul>
