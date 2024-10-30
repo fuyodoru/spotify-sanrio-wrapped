@@ -93,3 +93,13 @@ function applyTheme() {
   // Add selected theme class
   container.classList.add(`${theme}-theme`);
 }
+document.getElementById('get-data-btn').addEventListener('click', async () => {
+  const timeRange = document.getElementById('time-range').value; // Get the selected time range
+  const [tracks, artists] = await Promise.all([
+    fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=${timeRange}`),
+    fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/artists?limit=10&time_range=${timeRange}`)
+  ]);
+  displayTopTracks(tracks.items);
+  displayTopArtists(artists.items);
+  displayTopGenres(artists.items);
+});
