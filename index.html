@@ -1,16 +1,21 @@
-const CLIENT_ID = '894e36ebf0a7460f99d52b98b8063ffa'; 
-const REDIRECT_URI = 'https://fuyodoru.github.io/spotify-sanrio-wrapped'; 
+const CLIENT_ID = '894e36ebf0a7460f99d52b98b8063ffa';
+const REDIRECT_URI = 'https://fuyodoru.github.io/spotify-sanrio-wrapped/'; 
 const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize';
 const RESPONSE_TYPE = 'token';
 const SCOPES = 'user-top-read';
+
+let accessToken = null; // FIXED: Declare global token
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Retrieve the saved theme from local storage
+
+    // Load saved theme
     const savedTheme = localStorage.getItem('selectedTheme');
     if (savedTheme) {
         document.getElementById("theme").value = savedTheme;
-        applyTheme(); // Apply the saved theme
+        applyTheme();
     }
 
+    // Login button
     document.getElementById('login-btn').addEventListener('click', () => {
         const authUrl = `${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=${RESPONSE_TYPE}&scope=${encodeURIComponent(SCOPES)}`;
         window.location.href = authUrl;
@@ -18,44 +23,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     getAccessToken();
 
+    // Get data button
     document.getElementById('get-data-btn').addEventListener('click', async () => {
-        const timeRange = document.getElementById('time-range').value; // Get the selected time range
-        console.log(`Selected time range: ${timeRange}`);
+
+        if (!accessToken) {
+            alert("Please log in with Spotify first!");
+            return;
+        }
+
+        const timeRange = document.getElementById('time-range').value;
 
         try {
             const [tracks, artists] = await Promise.all([
                 fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=${timeRange}`),
                 fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/artists?limit=10&time_range=${timeRange}`)
             ]);
+
             displayTopTracks(tracks.items);
             displayTopArtists(artists.items);
             displayTopGenres(artists.items);
+
         } catch (error) {
-            console.error('Error fetching data from Spotify API:', error);
+            console.error('Error fetching Spotify data:', error);
         }
     });
 });
 
+// Extract token from URL after redirect
 function getAccessToken() {
     const hash = window.location.hash;
-    if (hash) {
-        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
-        console.log(`Access Token: ${accessToken}`); // Log the access token
-        window.history.replaceState({}, document.title, '/');
+
+    if (hash.includes("access_token")) {
+        accessToken = new URLSearchParams(hash.substring(1)).get("access_token");
+
+        // Remove hash but keep path (fix for GitHub Pages)
+        window.history.replaceState({}, document.title, window.location.pathname);
+
         document.getElementById('get-data-btn').style.display = 'inline-block';
     }
 }
 
 async function fetchSpotifyAPI(url) {
-    console.log(`Fetching data from: ${url}`); // Log the fetch URL
     const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` }
     });
-    
+
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Spotify API error: ${response.status}`);
     }
 
     return response.json();
@@ -64,40 +78,46 @@ async function fetchSpotifyAPI(url) {
 function displayTopTracks(tracks) {
     const trackList = document.getElementById('top-tracks');
     trackList.innerHTML = '';
-    tracks.forEach((track) => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <div class="song">
-                <img src="${track.album.images[0].url}" width="50" alt="${track.name}" />
+
+    tracks.forEach(track => {
+        const item = document.createElement('li');
+        item.innerHTML = `
+            <div>
+                <img src="${track.album.images[0].url}" width="50">
                 <span>${track.name} by ${track.artists[0].name}</span>
-            </div>`;
-        trackList.appendChild(listItem);
+            </div>
+        `;
+        trackList.appendChild(item);
     });
 }
 
 function displayTopArtists(artists) {
     const artistList = document.getElementById('top-artists');
     artistList.innerHTML = '';
-    artists.forEach((artist) => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `
-            <div class="artist">
-                <img src="${artist.images[0]?.url || ''}" width="50" alt="${artist.name}" />
+
+    artists.forEach(artist => {
+        const item = document.createElement('li');
+        item.innerHTML = `
+            <div>
+                <img src="${artist.images[0]?.url || ''}" width="50">
                 <span>${artist.name}</span>
-            </div>`;
-        artistList.appendChild(listItem);
+            </div>
+        `;
+        artistList.appendChild(item);
     });
 }
 
 function displayTopGenres(artists) {
     const genreList = document.getElementById('top-genres');
     genreList.innerHTML = '';
-    const genres = artists.flatMap(artist => artist.genres);
-    const uniqueGenres = [...new Set(genres)];
-    uniqueGenres.forEach(genre => {
-        const listItem = document.createElement('li');
-        listItem.textContent = genre;
-        genreList.appendChild(listItem);
+
+    const genres = artists.flatMap(a => a.genres);
+    const unique = [...new Set(genres)];
+
+    unique.forEach(g => {
+        const item = document.createElement('li');
+        item.textContent = g;
+        genreList.appendChild(item);
     });
 }
 
@@ -105,12 +125,8 @@ function applyTheme() {
     const theme = document.getElementById("theme").value;
     const container = document.querySelector(".container");
 
-    // Remove existing theme classes
     container.classList.remove("cinnamoroll-theme", "badtz-maru-theme", "hello-kitty-theme", "keroppi-theme");
-
-    // Add selected theme class
     container.classList.add(`${theme}-theme`);
 
-    // Save selected theme to local storage
     localStorage.setItem('selectedTheme', theme);
 }
