@@ -1,197 +1,116 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spotify Wrapped</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    /* General Styles */
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f0f0f0;
+const CLIENT_ID = '894e36ebf0a7460f99d52b98b8063ffa'; 
+const REDIRECT_URI = 'https://fuyodoru.github.io/spotify-sanrio-wrapped'; 
+const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize';
+const RESPONSE_TYPE = 'token';
+const SCOPES = 'user-top-read';
+document.addEventListener('DOMContentLoaded', () => {
+    // Retrieve the saved theme from local storage
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme) {
+        document.getElementById("theme").value = savedTheme;
+        applyTheme(); // Apply the saved theme
     }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-      border-radius: 15px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    document.getElementById('login-btn').addEventListener('click', () => {
+        const authUrl = `${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=${RESPONSE_TYPE}&scope=${encodeURIComponent(SCOPES)}`;
+        window.location.href = authUrl;
+    });
+
+    getAccessToken();
+
+    document.getElementById('get-data-btn').addEventListener('click', async () => {
+        const timeRange = document.getElementById('time-range').value; // Get the selected time range
+        console.log(`Selected time range: ${timeRange}`);
+
+        try {
+            const [tracks, artists] = await Promise.all([
+                fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/tracks?limit=10&time_range=${timeRange}`),
+                fetchSpotifyAPI(`https://api.spotify.com/v1/me/top/artists?limit=10&time_range=${timeRange}`)
+            ]);
+            displayTopTracks(tracks.items);
+            displayTopArtists(artists.items);
+            displayTopGenres(artists.items);
+        } catch (error) {
+            console.error('Error fetching data from Spotify API:', error);
+        }
+    });
+});
+
+function getAccessToken() {
+    const hash = window.location.hash;
+    if (hash) {
+        accessToken = new URLSearchParams(hash.substring(1)).get('access_token');
+        console.log(`Access Token: ${accessToken}`); // Log the access token
+        window.history.replaceState({}, document.title, '/');
+        document.getElementById('get-data-btn').style.display = 'inline-block';
+    }
+}
+
+async function fetchSpotifyAPI(url) {
+    console.log(`Fetching data from: ${url}`); // Log the fetch URL
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    h1 {
-      margin-top: 20px;
-      font-size: 36px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    }
+    return response.json();
+}
 
-    h2 {
-      margin-top: 20px;
-      font-size: 28px;
-    }
+function displayTopTracks(tracks) {
+    const trackList = document.getElementById('top-tracks');
+    trackList.innerHTML = '';
+    tracks.forEach((track) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <div class="song">
+                <img src="${track.album.images[0].url}" width="50" alt="${track.name}" />
+                <span>${track.name} by ${track.artists[0].name}</span>
+            </div>`;
+        trackList.appendChild(listItem);
+    });
+}
 
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
+function displayTopArtists(artists) {
+    const artistList = document.getElementById('top-artists');
+    artistList.innerHTML = '';
+    artists.forEach((artist) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+            <div class="artist">
+                <img src="${artist.images[0]?.url || ''}" width="50" alt="${artist.name}" />
+                <span>${artist.name}</span>
+            </div>`;
+        artistList.appendChild(listItem);
+    });
+}
 
-    li {
-      margin: 10px 0;
-      padding: 15px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 500;
-    }
+function displayTopGenres(artists) {
+    const genreList = document.getElementById('top-genres');
+    genreList.innerHTML = '';
+    const genres = artists.flatMap(artist => artist.genres);
+    const uniqueGenres = [...new Set(genres)];
+    uniqueGenres.forEach(genre => {
+        const listItem = document.createElement('li');
+        listItem.textContent = genre;
+        genreList.appendChild(listItem);
+    });
+}
 
-    .button-container {
-      margin: 20px;
-    }
+function applyTheme() {
+    const theme = document.getElementById("theme").value;
+    const container = document.querySelector(".container");
 
-    button {
-      padding: 10px 20px;
-      border-radius: 25px;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transition: background-color 0.3s;
-    }
+    // Remove existing theme classes
+    container.classList.remove("cinnamoroll-theme", "badtz-maru-theme", "hello-kitty-theme", "keroppi-theme");
 
-    .theme-selector, .time-range-selector {
-      margin: 20px;
-    }
+    // Add selected theme class
+    container.classList.add(`${theme}-theme`);
 
-    .theme-selector select, .time-range-selector select {
-      padding: 8px;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    /* Theme-Specific Styles */
-    .cinnamoroll-theme {
-      background: linear-gradient(135deg, #d4f1f9, #e0f7ff);
-      color: #5a9fcf;
-    }
-
-    .cinnamoroll-theme h1, .cinnamoroll-theme h2 {
-      color: #7aa7d2;
-    }
-
-    .cinnamoroll-theme button {
-      background-color: #a6dcef;
-      color: #ffffff;
-    }
-
-    .cinnamoroll-theme li {
-      background-color: rgba(250, 250, 250, 0.8);
-      color: #444;
-    }
-
-    .badtz-maru-theme {
-      background: linear-gradient(135deg, #232323, #3c3c3c);
-      color: #ffc857;
-    }
-
-    .badtz-maru-theme h1, .badtz-maru-theme h2 {
-      color: #ffc857;
-    }
-
-    .badtz-maru-theme button {
-      background-color: #ffc857;
-      color: #232323;
-    }
-
-    .badtz-maru-theme li {
-      background-color: #4b4b4b;
-      color: #ffc857;
-    }
-
-    .hello-kitty-theme {
-      background: linear-gradient(135deg, #f8c1d7, #fbd3e6);
-      color: #f04f78;
-    }
-
-    .hello-kitty-theme h1, .hello-kitty-theme h2 {
-      color: #f04f78;
-    }
-
-    .hello-kitty-theme button {
-      background-color: #f04f78;
-      color: #ffffff;
-    }
-
-    .hello-kitty-theme li {
-      background-color: rgba(255, 204, 221, 0.8);
-      color: #f04f78;
-    }
-
-    .keroppi-theme {
-      background: linear-gradient(135deg, #a4e376, #d0f2a3);
-      color: #558b2f;
-    }
-
-    .keroppi-theme h1, .keroppi-theme h2 {
-      color: #558b2f;
-    }
-
-    .keroppi-theme button {
-      background-color: #558b2f;
-      color: #ffffff;
-    }
-
-    .keroppi-theme li {
-      background-color: rgba(204, 255, 153, 0.8);
-      color: #558b2f;
-    }
-
-  </style>
-</head>
-<body>
-  <div class="container cinnamoroll-theme">
-    <h1>Your 2024 Spotify Wrapped</h1>
-    <div class="button-container">
-      <button id="login-btn">Login with Spotify</button>
-      <button id="get-data-btn" style="display: none;">Show My Wrapped</button>
-    </div>
-
-    <div class="theme-selector">
-      <label for="theme">Choose Your Theme: </label>
-      <select id="theme" onchange="applyTheme()">
-        <option value="cinnamoroll">Cinnamoroll</option>
-        <option value="badtz-maru">Bad Badtz-Maru</option>
-        <option value="hello-kitty">Hello Kitty</option>
-        <option value="keroppi">Keroppi</option>
-      </select>
-    </div>
-
-    <div class="time-range-selector">
-      <label for="time-range">Choose Time Range: </label>
-      <select id="time-range">
-        <option value="short_term">Last Month</option>
-        <option value="medium_term">Last 6 Months</option>
-        <option value="long_term">Last Year</option>
-      </select>
-    </div>
-
-
-    <h2>Top 10 Songs</h2>
-    <ul id="top-tracks"></ul>
-
-    <h2>Top 10 Artists</h2>
-    <ul id="top-artists"></ul>
-
-    <h2>Your Favorite Genres</h2>
-    <ul id="top-genres"></ul>
-  </div>
-
-  <script src="scriptspotify.js"></script>
-</body>
-</html>
+    // Save selected theme to local storage
+    localStorage.setItem('selectedTheme', theme);
+}
